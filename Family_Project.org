@@ -1,0 +1,7 @@
+* Family Project
+** Uso
+1. Inicializar DB: python scripts/init_db.py
+2. Optimizar: ./scripts/optimize.sh foto.jpg
+3. Thumbs: python scripts/thumbs.py
+4. Ingesta: python scripts/ingest.py foto.jpg "tags"
+5. Run: python app/main.py

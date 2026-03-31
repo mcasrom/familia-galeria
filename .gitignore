@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+
+# Entorno
+.env
+config.env
+
+# Base de datos
+data/photos.db
+
+# Imágenes (NO subir)
+uploads/
+processed/
+app/static/thumbs/
+
+# Sistema
+.DS_Store

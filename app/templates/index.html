@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Family Album</title>
+<style>
+body{background:#111;color:#eee;font-family:sans-serif}
+.grid{display:flex;flex-wrap:wrap}
+.card{margin:10px}
+img{max-width:300px;border-radius:10px}
+</style>
+</head>
+<body>
+<h1>Family Album</h1>
+<div class="grid">
+{% for p in photos %}
+<div class="card">
+<img src="/static/thumbs/{{p[1]}}">
+<p>{{p[2]}}</p>
+</div>
+{% endfor %}
+</div>
+</body>
+</html>
