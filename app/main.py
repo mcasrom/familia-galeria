@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.secret_key = "clave_super_secreta"
 
 # =========================
-# Carpetas y rutas ajustadas para Render
+# Carpetas y rutas
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
 UPLOAD_FOLDER = os.path.join(APP_DIR, "../uploads")
@@ -30,13 +30,24 @@ ADMIN_USER = "admin"
 ADMIN_PASS = "admin123"
 
 # =========================
-# Import y registro del módulo de uploads
+# Import y registro módulo uploads
 from app.upload_module import register_upload
 register_upload(app, UPLOAD_FOLDER)
 
 # =========================
-# Rutas básicas
+# UTILIDADES
+def load_tags():
+    if os.path.exists(TAGS_FILE):
+        with open(TAGS_FILE, "r") as f:
+            return json.load(f)
+    return []
 
+def save_tags(tags):
+    with open(TAGS_FILE, "w") as f:
+        json.dump(tags, f)
+
+# =========================
+# Rutas principales
 @app.route("/")
 def index():
     if "user" not in session:
@@ -62,21 +73,10 @@ def logout():
     return redirect(url_for("login"))
 
 # =========================
-# Uploads y gestión de archivos
+# Rutas de uploads
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
-
-# Ejemplo de eliminación de archivo (mover a trash)
-@app.route("/delete/<filename>", methods=["POST"])
-def delete_file(filename):
-    if "user" not in session:
-        return redirect(url_for("login"))
-    src = os.path.join(UPLOAD_FOLDER, filename)
-    dst = os.path.join(TRASH_FOLDER, filename)
-    if os.path.exists(src):
-        shutil.move(src, dst)
-    return redirect(url_for("index"))
 
 # =========================
 # API simple de tags
@@ -84,27 +84,10 @@ def delete_file(filename):
 def tags():
     if request.method == "POST":
         data = request.json
-        with open(TAGS_FILE, "w") as f:
-            json.dump(data, f)
+        save_tags(data)
         return jsonify({"status": "ok"})
     else:
-        if os.path.exists(TAGS_FILE):
-            with open(TAGS_FILE, "r") as f:
-                data = json.load(f)
-            return jsonify(data)
-        return jsonify([])
-
-# =========================
-# Opcional: endpoint de limpieza de trash (solo admin)
-@app.route("/trash/clear", methods=["POST"])
-def clear_trash():
-    if "user" not in session or session["user"] != ADMIN_USER:
-        return redirect(url_for("login"))
-    for filename in os.listdir(TRASH_FOLDER):
-        path = os.path.join(TRASH_FOLDER, filename)
-        if os.path.isfile(path):
-            os.remove(path)
-    return redirect(url_for("index"))
+        return jsonify(load_tags())
 
 # =========================
 # Run app local (solo si se ejecuta directamente)
