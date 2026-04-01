@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Galería</title>
+
+<style>
+body {
+  margin: 0;
+  background: #0d0d0d;
+  color: white;
+  font-family: Arial;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: #111;
+}
+
+.tags-filter {
+  padding: 10px;
+  text-align: center;
+}
+
+.tag {
+  display: inline-block;
+  background: #333;
+  padding: 5px 10px;
+  margin: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.tag:hover {
+  background: #555;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+  padding: 20px;
+}
+
+.card {
+  position: relative;
+}
+
+.card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.card:hover img {
+  transform: scale(1.05);
+}
+
+.acciones {
+  position: absolute;
+  bottom: 5px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  opacity: 0;
+}
+
+.card:hover .acciones {
+  opacity: 1;
+}
+
+button {
+  background: #222;
+  border: none;
+  color: white;
+  padding: 6px;
+  cursor: pointer;
+}
+
+/* MODAL */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+}
+
+.modal img {
+  display: block;
+  margin: auto;
+  margin-top: 5%;
+  max-width: 90%;
+  max-height: 80%;
+}
+
+.nav {
+  position: absolute;
+  top: 50%;
+  font-size: 40px;
+  cursor: pointer;
+  padding: 20px;
+}
+
+.left { left: 0; }
+.right { right: 0; }
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>📸 Álbum</div>
+  <div>
+    {% if session.get("role") == "admin" %}
+    <a href="/trash" style="color:white;">🗑 Papelera</a> |
+    {% endif %}
+    <a href="/logout" style="color:white;">Logout</a>
+  </div>
+</div>
+
+<div class="tags-filter" id="tagsContainer"></div>
+
+<div class="gallery" id="gallery">
+
+{% for f in fotos %}
+<div class="card" data-tags="{{ tags.get(f, []) | join(',') }}" id="card-{{f}}">
+  
+  <img src="/fotos/{{f}}" onclick="abrirModal('{{f}}')">
+
+  <div class="acciones">
+    <button onclick="abrirModal('{{f}}')">👁</button>
+    {% if session.get("role") == "admin" %}
+    <button onclick="borrar('{{f}}')">🗑</button>
+    {% endif %}
+    <button onclick="addTag('{{f}}')">🏷</button>
+  </div>
+
+</div>
+{% endfor %}
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <span class="close" onclick="cerrarModal()">&times;</span>
+  <span class="nav left" onclick="prev()">❮</span>
+  <img id="imgGrande">
+  <span class="nav right" onclick="next()">❯</span>
+</div>
+
+<script>
+
+let fotos = {{ fotos | tojson }};
+let current = 0;
+
+function cerrarModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+
+// ===================
+// CARRUSEL
+// ===================
+
+function abrirModal(f) {
+  current = fotos.indexOf(f);
+  document.getElementById("modal").style.display = "block";
+  mostrar();
+}
+
+function mostrar() {
+  document.getElementById("imgGrande").src = "/fotos/" + fotos[current];
+}
+
+function next() {
+  current = (current + 1) % fotos.length;
+  mostrar();
+}
+
+function prev() {
+  current = (current - 1 + fotos.length) % fotos.length;
+  mostrar();
+}
+
+document.getElementById("modal").onclick = () => {
+  document.getElementById("modal").style.display = "none";
+};
+
+// ===================
+// BORRAR SIN RECARGA
+// ===================
+
+function borrar(f) {
+  if (!confirm("⚠️ Esta foto irá a la papelera. ¿Continuar?")) return;
+
+
+  fetch("/delete/" + f, {method: "POST"})
+    .then(() => {
+      document.getElementById("card-" + f).remove();
+      fotos = fotos.filter(x => x !== f);
+    });
+}
+
+// ===================
+// TAGS
+// ===================
+
+function addTag(f) {
+  let tag = prompt("Tag:");
+  if (!tag) return;
+
+  fetch("/update_tag", {
+    method: "POST",
+    headers: {"Content-Type": "application/x-www-form-urlencoded"},
+    body: "filename=" + f + "&tag=" + tag
+  }).then(() => location.reload());
+}
+
+// ===================
+// FILTRO
+// ===================
+
+let allTags = new Set();
+
+document.querySelectorAll(".card").forEach(card => {
+  let t = card.dataset.tags;
+  if (t) {
+    t.split(",").forEach(tag => allTags.add(tag.trim()));
+  }
+});
+
+let container = document.getElementById("tagsContainer");
+
+allTags.forEach(tag => {
+  let el = document.createElement("span");
+  el.className = "tag";
+  el.innerText = tag;
+  el.onclick = () => filtrar(tag);
+  container.appendChild(el);
+});
+
+function filtrar(tag) {
+  document.querySelectorAll(".card").forEach(card => {
+    if (card.dataset.tags.includes(tag)) {
+      card.style.display = "block";
+    } else {
+      card.style.display = "none";
+    }
+  });
+}
+
+</script>
+
+</body>
+</html>
