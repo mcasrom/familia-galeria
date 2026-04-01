@@ -6,18 +6,27 @@ import shutil
 app = Flask(__name__)
 app.secret_key = "clave_super_secreta"
 
+# =========================
+# Carpetas y rutas ajustadas
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(APP_DIR, "../uploads")
-DATA_FOLDER = os.path.join(APP_DIR, "../data")
+
+UPLOAD_FOLDER = os.path.join(APP_DIR, "uploads")
+DATA_FOLDER = os.path.join(APP_DIR, "data")
+TRASH_FOLDER = os.path.join(APP_DIR, "trash")
 TAGS_FILE = os.path.join(DATA_FOLDER, "tags.json")
-TRASH_FOLDER = os.path.join(APP_DIR, "../trash")
 
-from app.upload_module import register_upload
-register_upload(app, UPLOAD_FOLDER)
-
+# Crear carpetas si no existen
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(DATA_FOLDER, exist_ok=True)
 os.makedirs(TRASH_FOLDER, exist_ok=True)
 
+# =========================
+# Import del módulo de uploads
+from upload_module import register_upload
+register_upload(app, UPLOAD_FOLDER)
+
+# =========================
+# Usuarios y contraseñas
 USERNAME = "Family"
 PASSWORD = "4321"
 ADMIN_USER = "admin"
