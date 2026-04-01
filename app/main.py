@@ -1,18 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, session, flash, jsonify
 import os
 import json
 import shutil
 
+# =========================
+# App y configuración
 app = Flask(__name__)
 app.secret_key = "clave_super_secreta"
 
 # =========================
-# Carpetas y rutas ajustadas
+# Carpetas y rutas ajustadas para Render
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
-UPLOAD_FOLDER = os.path.join(APP_DIR, "uploads")
-DATA_FOLDER = os.path.join(APP_DIR, "data")
-TRASH_FOLDER = os.path.join(APP_DIR, "trash")
+UPLOAD_FOLDER = os.path.join(APP_DIR, "../uploads")
+DATA_FOLDER = os.path.join(APP_DIR, "../data")
+TRASH_FOLDER = os.path.join(APP_DIR, "../trash")
 TAGS_FILE = os.path.join(DATA_FOLDER, "tags.json")
 
 # Crear carpetas si no existen
@@ -21,199 +23,90 @@ os.makedirs(DATA_FOLDER, exist_ok=True)
 os.makedirs(TRASH_FOLDER, exist_ok=True)
 
 # =========================
-# Import del módulo de uploads
-from upload_module import register_upload
-register_upload(app, UPLOAD_FOLDER)
-
-# =========================
 # Usuarios y contraseñas
 USERNAME = "Family"
 PASSWORD = "4321"
 ADMIN_USER = "admin"
 ADMIN_PASS = "admin123"
 
+# =========================
+# Import y registro del módulo de uploads
+from app.upload_module import register_upload
+register_upload(app, UPLOAD_FOLDER)
 
 # =========================
-# UTILIDADES
-# =========================
-def load_tags():
-    if os.path.exists(TAGS_FILE):
-        with open(TAGS_FILE, "r") as f:
-            return json.load(f)
-    return {}
+# Rutas básicas
 
+@app.route("/")
+def index():
+    if "user" not in session:
+        return redirect(url_for("login"))
+    return render_template("index.html", username=session["user"])
 
-def save_tags(tags):
-    with open(TAGS_FILE, "w") as f:
-        json.dump(tags, f, indent=4)
-
-
-def safe_filename(filename):
-    return os.path.basename(filename)
-
-
-def require_admin():
-    if not session.get("logged") or session.get("role") != "admin":
-        return False
-    return True
-
-
-# =========================
-# LOGIN
-# =========================
-@app.route("/", methods=["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         user = request.form.get("username")
         pwd = request.form.get("password")
-        if user == USERNAME and pwd == PASSWORD:
-            session["logged"] = True
-            session["role"] = "viewer"
-            return redirect(url_for("gallery"))
-        elif user == ADMIN_USER and pwd == ADMIN_PASS:
-            session["logged"] = True
-            session["role"] = "admin"
-            return redirect(url_for("gallery"))
-        return render_template("login.html", error="Usuario o contraseña incorrectos")
+        if (user == USERNAME and pwd == PASSWORD) or (user == ADMIN_USER and pwd == ADMIN_PASS):
+            session["user"] = user
+            return redirect(url_for("index"))
+        else:
+            flash("Usuario o contraseña incorrectos", "error")
+            return redirect(url_for("login"))
     return render_template("login.html")
 
-
-# =========================
-# GALERÍA
-# =========================
-@app.route("/gallery")
-def gallery():
-    if not session.get("logged"):
-        return redirect(url_for("login"))
-    
-    fotos = sorted([
-        f for f in os.listdir(UPLOAD_FOLDER)
-        if f.lower().endswith((".png", ".jpg", ".jpeg"))
-    ])
-    tags = load_tags()
-    return render_template("gallery_v2.html", fotos=fotos, tags=tags)
-
-
-@app.route("/fotos/<filename>")
-def fotos(filename):
-    filename = safe_filename(filename)
-    return send_from_directory(UPLOAD_FOLDER, filename)
-
-
-# =========================
-# BORRAR FOTO
-# =========================
-@app.route("/delete/<filename>", methods=["POST"])
-def delete(filename):
-    if not require_admin():
-        return jsonify(success=False, error="No autorizado"), 403
-    
-    filename = safe_filename(filename)
-    src = os.path.join(UPLOAD_FOLDER, filename)
-    dst = os.path.join(TRASH_FOLDER, filename)
-    
-    if os.path.exists(src):
-        shutil.move(src, dst)
-    
-    # Eliminar tags asociados
-    tags = load_tags()
-    if filename in tags:
-        tags.pop(filename, None)
-        save_tags(tags)
-    
-    return jsonify(success=True)
-
-
-# =========================
-# TAGS (AÑADIR Y ELIMINAR)
-# =========================
-@app.route("/update_tag", methods=["POST"])
-def update_tag():
-    filename = safe_filename(request.form.get("filename"))
-    tag_value = request.form.get("tag")
-
-    tags = load_tags()
-    if filename not in tags:
-        tags[filename] = []
-    
-    if tag_value and tag_value not in tags[filename]:
-        tags[filename].append(tag_value)
-        save_tags(tags)
-
-    return jsonify(success=True, tags=tags.get(filename, []))
-
-
-@app.route("/delete_tag", methods=["POST"])
-def delete_tag():
-    if not session.get("logged"):
-        return jsonify(success=False), 403
-
-    filename = safe_filename(request.form.get("filename"))
-    tag = request.form.get("tag")
-
-    tags = load_tags()
-
-    if filename in tags and tag in tags[filename]:
-        tags[filename].remove(tag)
-        if not tags[filename]:          # Si ya no quedan tags, eliminamos la entrada
-            tags.pop(filename)
-        save_tags(tags)
-
-    return jsonify(success=True, tags=tags.get(filename, []))
-
-
-# =========================
-# PAPELERA
-# =========================
-@app.route("/restore/<filename>", methods=["POST"])
-def restore(filename):
-    if not require_admin():
-        return jsonify(success=False, error="No autorizado"), 403
-    
-    filename = safe_filename(filename)
-    src = os.path.join(TRASH_FOLDER, filename)
-    dst = os.path.join(UPLOAD_FOLDER, filename)
-    
-    if os.path.exists(src):
-        shutil.move(src, dst)
-    
-    return jsonify(success=True)
-
-
-@app.route("/delete_permanent/<filename>", methods=["POST"])
-def delete_permanent(filename):
-    if not require_admin():
-        return jsonify(success=False), 403
-    
-    filename = safe_filename(filename)
-    path = os.path.join(TRASH_FOLDER, filename)
-    if os.path.exists(path):
-        os.remove(path)
-    
-    return jsonify(success=True)
-
-
-@app.route("/trash")
-def trash():
-    if not require_admin():
-        return redirect(url_for("login"))
-    
-    fotos = sorted([
-        f for f in os.listdir(TRASH_FOLDER)
-        if f.lower().endswith((".png", ".jpg", ".jpeg"))
-    ])
-    return render_template("trash.html", fotos=fotos)   # ← Asegúrate de tener esta plantilla
-
-
-# =========================
-# LOGOUT
-# =========================
 @app.route("/logout")
 def logout():
-    session.clear()
+    session.pop("user", None)
     return redirect(url_for("login"))
 
+# =========================
+# Uploads y gestión de archivos
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+# Ejemplo de eliminación de archivo (mover a trash)
+@app.route("/delete/<filename>", methods=["POST"])
+def delete_file(filename):
+    if "user" not in session:
+        return redirect(url_for("login"))
+    src = os.path.join(UPLOAD_FOLDER, filename)
+    dst = os.path.join(TRASH_FOLDER, filename)
+    if os.path.exists(src):
+        shutil.move(src, dst)
+    return redirect(url_for("index"))
 
 # =========================
+# API simple de tags
+@app.route("/tags", methods=["GET", "POST"])
+def tags():
+    if request.method == "POST":
+        data = request.json
+        with open(TAGS_FILE, "w") as f:
+            json.dump(data, f)
+        return jsonify({"status": "ok"})
+    else:
+        if os.path.exists(TAGS_FILE):
+            with open(TAGS_FILE, "r") as f:
+                data = json.load(f)
+            return jsonify(data)
+        return jsonify([])
+
+# =========================
+# Opcional: endpoint de limpieza de trash (solo admin)
+@app.route("/trash/clear", methods=["POST"])
+def clear_trash():
+    if "user" not in session or session["user"] != ADMIN_USER:
+        return redirect(url_for("login"))
+    for filename in os.listdir(TRASH_FOLDER):
+        path = os.path.join(TRASH_FOLDER, filename)
+        if os.path.isfile(path):
+            os.remove(path)
+    return redirect(url_for("index"))
+
+# =========================
+# Run app local (solo si se ejecuta directamente)
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
