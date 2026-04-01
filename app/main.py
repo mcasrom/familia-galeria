@@ -12,7 +12,7 @@ DATA_FOLDER = os.path.join(APP_DIR, "../data")
 TAGS_FILE = os.path.join(DATA_FOLDER, "tags.json")
 TRASH_FOLDER = os.path.join(APP_DIR, "../trash")
 
-from upload_module import register_upload
+from app.upload_module import register_upload
 register_upload(app, UPLOAD_FOLDER)
 
 os.makedirs(DATA_FOLDER, exist_ok=True)

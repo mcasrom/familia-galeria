@@ -1,3 +1,4 @@
-flask
+Flask
+gunicorn==21.2.0
 pillow
 python-dotenv
