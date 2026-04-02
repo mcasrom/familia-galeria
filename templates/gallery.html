@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Galería Familiar · Memorias</title>
+<title>Historia con IA · Galería Familiar</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -428,10 +428,95 @@ header {
 .empty h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: .5rem; }
 .empty p  { font-size: .85rem; }
 
+/* ── Ko-fi bar ── */
+.kofi-bar {
+  background: rgba(30,26,18,.8);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: .5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .8rem;
+  flex-wrap: wrap;
+}
+.kofi-bar span {
+  font-size: .76rem;
+  color: rgba(200,169,126,.45);
+  letter-spacing: .06em;
+}
+.kofi-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .28rem .85rem;
+  background: #ff5e5b;
+  color: #fff !important;
+  font-size: .76rem;
+  font-family: 'Lato', sans-serif;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-decoration: none;
+  transition: background .2s, transform .1s;
+}
+.kofi-btn:hover  { background: #e04e4b; }
+.kofi-btn:active { transform: scale(.97); }
+
+/* ── Disclaimer ── */
+.disclaimer {
+  margin: .8rem 2rem 0;
+  padding: .65rem 1.1rem;
+  border-left: 3px solid rgba(200,169,126,.2);
+  background: rgba(200,169,126,.03);
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+}
+.disclaimer-icon { font-size: .9rem; flex-shrink: 0; margin-top: .1rem; opacity: .6; }
+.disclaimer p {
+  font-size: .76rem;
+  color: rgba(200,169,126,.42);
+  font-style: italic;
+  line-height: 1.55;
+  letter-spacing: .02em;
+}
+
+/* ── Footer ── */
+footer {
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--border);
+  padding: 1.2rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .6rem;
+}
+.footer-copy {
+  font-size: .7rem;
+  color: rgba(200,169,126,.3);
+  letter-spacing: .07em;
+}
+.footer-copy a {
+  color: rgba(200,169,126,.45);
+  text-decoration: none;
+  transition: color .2s;
+}
+.footer-copy a:hover { color: var(--sepia); }
+.footer-brand {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: .78rem;
+  color: rgba(200,169,126,.25);
+  letter-spacing: .04em;
+}
+
 @media (max-width: 600px) {
   header { padding: .9rem 1rem; }
   .grid  { padding: 1rem; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-  .toolbar, .upload-zone, .flashes { padding-left: 1rem; padding-right: 1rem; }
+  .toolbar, .upload-zone, .flashes, .disclaimer { padding-left: 1rem; padding-right: 1rem; }
+  .disclaimer { margin-left: 1rem; margin-right: 1rem; }
+  footer { padding: 1rem; flex-direction: column; align-items: center; text-align: center; }
 }
 </style>
 </head>
@@ -440,8 +525,8 @@ header {
 <!-- Header -->
 <header>
   <div class="header-left">
-    <h1>📷 Galería Familiar</h1>
-    <span>Memorias · Siglo XX</span>
+    <h1>📷 Historia con IA</h1>
+    <span>Galería Familiar · Siglo XX</span>
   </div>
   <div class="header-right">
     <span class="user-badge">{{ username }}</span>
@@ -466,6 +551,21 @@ header {
   {% if images %}
   <button class="btn-carousel" onclick="startCarousel(0)">▶ Carrusel</button>
   {% endif %}
+</div>
+
+<!-- Ko-fi bar -->
+<div class="kofi-bar">
+  <span>Si estas fotos te traen recuerdos, invítame a un café ☕</span>
+  <a class="kofi-btn" href="https://ko-fi.com/mcasrom" target="_blank" rel="noopener">
+    ☕ Ko-fi
+  </a>
+</div>
+
+<!-- Disclaimer IA -->
+<div class="disclaimer">
+  <span class="disclaimer-icon">🤖</span>
+  <p>Las imágenes aquí mostradas han sido regeneradas con inteligencia artificial para mejorar su visualización,
+     sin otro ánimo que preservar la memoria familiar y compartir estos recuerdos.</p>
 </div>
 
 <!-- Upload (admin only) -->
@@ -670,5 +770,14 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
   if (e.target === this) closeLightbox();
 });
 </script>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-copy">
+    &copy; <a href="mailto:mcasrom@gmail.com">M. Castillo</a> · Todos los derechos reservados
+  </div>
+  <div class="footer-brand">Historia con IA · Familia · Murcia · España</div>
+</footer>
+
 </body>
 </html>
