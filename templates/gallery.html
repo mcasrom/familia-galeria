@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galería Familiar · Memorias</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #111009;
+  --card:     #1e1a12;
+  --cream:    #f0e8d8;
+  --sepia:    #c8a97e;
+  --brown:    #7a4f28;
+  --accent:   #d4895a;
+  --light:    #e8dcc8;
+  --border:   rgba(200,169,126,.2);
+  --shadow:   0 8px 32px rgba(0,0,0,.6);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'Lato', sans-serif;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 0% 0%, rgba(122,79,40,.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(212,137,90,.08) 0%, transparent 50%);
+}
+
+/* ── Header ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 2rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: rgba(17,16,9,.92);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+}
+.header-left h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--sepia);
+  letter-spacing: .02em;
+}
+.header-left span {
+  font-size: .72rem;
+  color: rgba(200,169,126,.5);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  display: block;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.user-badge {
+  font-size: .78rem;
+  color: var(--sepia);
+  opacity: .7;
+}
+.btn-sm {
+  padding: .4rem .9rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--sepia);
+  font-size: .78rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .2s;
+  font-family: 'Lato', sans-serif;
+}
+.btn-sm:hover { background: var(--brown); border-color: var(--brown); color: var(--cream); }
+
+/* ── Toolbar ── */
+.toolbar {
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+}
+.count {
+  font-size: .78rem;
+  color: rgba(200,169,126,.5);
+  letter-spacing: .1em;
+}
+.btn-carousel {
+  padding: .45rem 1.2rem;
+  background: var(--brown);
+  color: var(--cream);
+  border: none;
+  font-family: 'Playfair Display', serif;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn-carousel:hover { background: var(--accent); }
+
+/* ── Upload form (admin) ── */
+.upload-zone {
+  margin: 0 2rem 0;
+  padding: 1rem 1.5rem;
+  border: 1px dashed var(--border);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.upload-zone label { font-size: .8rem; color: var(--sepia); letter-spacing: .08em; text-transform: uppercase; }
+.upload-zone input[type=file] { font-size: .82rem; color: var(--cream); }
+.upload-zone button {
+  padding: .4rem 1rem;
+  background: var(--brown);
+  border: none;
+  color: var(--cream);
+  font-size: .82rem;
+  cursor: pointer;
+  transition: background .2s;
+}
+.upload-zone button:hover { background: var(--accent); }
+
+/* ── Flash ── */
+.flashes {
+  padding: .6rem 2rem;
+}
+.flash {
+  padding: .5rem 1rem;
+  font-size: .85rem;
+  border-left: 3px solid var(--accent);
+  color: var(--sepia);
+  background: rgba(212,137,90,.08);
+  margin-bottom: .4rem;
+}
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.2rem;
+  padding: 1.5rem 2rem 3rem;
+}
+
+.photo-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform .25s, box-shadow .25s;
+  animation: fadeIn .4s ease both;
+}
+.photo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(200,169,126,.3);
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.photo-wrap {
+  width: 100%;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  position: relative;
+}
+.photo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(30%) contrast(1.05);
+  transition: filter .3s, transform .4s;
+  display: block;
+}
+.photo-card:hover .photo-wrap img {
+  filter: sepia(15%) contrast(1.1);
+  transform: scale(1.04);
+}
+
+/* Overlay año */
+.year-badge {
+  position: absolute;
+  bottom: .5rem;
+  right: .5rem;
+  background: rgba(17,16,9,.75);
+  color: var(--sepia);
+  font-size: .68rem;
+  letter-spacing: .1em;
+  padding: .2rem .45rem;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  pointer-events: none;
+}
+
+.photo-info {
+  padding: .6rem .8rem;
+}
+.photo-name {
+  font-size: .78rem;
+  color: rgba(200,169,126,.6);
+  letter-spacing: .05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.photo-tag {
+  margin-top: .35rem;
+  font-size: .82rem;
+  color: var(--light);
+  font-style: italic;
+  min-height: 1.1em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Lightbox ── */
+#lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,9,5,.93);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+#lightbox.open { display: flex; }
+
+#lb-img-wrap {
+  max-width: 88vw;
+  max-height: 78vh;
+  position: relative;
+}
+#lb-img {
+  max-width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+  filter: sepia(15%) contrast(1.08);
+  box-shadow: 0 0 0 1px rgba(200,169,126,.2), 0 30px 80px rgba(0,0,0,.8);
+  display: block;
+}
+
+.lb-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1.2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.lb-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--sepia);
+  padding: .5rem 1.1rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: 'Lato', sans-serif;
+  line-height: 1;
+}
+.lb-btn:hover { background: var(--brown); border-color: var(--brown); }
+
+#lb-caption {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--sepia);
+  max-width: 88vw;
+  text-align: center;
+  min-height: 1.4em;
+}
+#lb-counter {
+  font-size: .75rem;
+  color: rgba(200,169,126,.45);
+  letter-spacing: .1em;
+}
+
+#lb-close {
+  position: fixed;
+  top: 1.2rem;
+  right: 1.5rem;
+  font-size: 1.8rem;
+  color: var(--sepia);
+  cursor: pointer;
+  background: none;
+  border: none;
+  line-height: 1;
+  opacity: .7;
+  transition: opacity .2s;
+  z-index: 1001;
+}
+#lb-close:hover { opacity: 1; }
+
+/* Tag edit (admin) */
+.lb-tag-edit {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  margin-top: .5rem;
+}
+#lb-tag-input {
+  padding: .4rem .7rem;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  color: var(--cream);
+  font-size: .85rem;
+  font-family: 'Lato', sans-serif;
+  width: 260px;
+  outline: none;
+}
+#lb-tag-input:focus { border-color: var(--accent); }
+.btn-save-tag {
+  padding: .4rem .8rem;
+  background: var(--brown);
+  border: none;
+  color: var(--cream);
+  font-size: .8rem;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn-save-tag:hover { background: var(--accent); }
+
+/* Delete btn */
+.btn-delete {
+  background: rgba(155,38,38,.15);
+  border: 1px solid rgba(155,38,38,.3);
+  color: #e57373;
+  padding: .5rem 1rem;
+  font-size: .82rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-delete:hover { background: rgba(155,38,38,.35); }
+
+/* ── Carousel mode ── */
+#carousel-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,4,2,.97);
+  z-index: 2000;
+  align-items: center;
+  justify-content: center;
+}
+#carousel-overlay.open { display: flex; }
+#carousel-overlay img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  filter: sepia(20%) contrast(1.05);
+  animation: slideIn .35s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: scale(.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.car-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+  color: var(--sepia);
+  cursor: pointer;
+  background: rgba(17,16,9,.5);
+  border: none;
+  padding: .5rem .8rem;
+  z-index: 2001;
+  transition: background .2s;
+}
+.car-nav:hover { background: rgba(122,79,40,.6); }
+#car-prev { left: 1rem; }
+#car-next { right: 1rem; }
+#car-close {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  font-size: 1.8rem;
+  color: var(--sepia);
+  cursor: pointer;
+  background: none;
+  border: none;
+  z-index: 2002;
+  opacity: .7;
+}
+#car-close:hover { opacity: 1; }
+#car-info {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  color: var(--sepia);
+  font-size: 1rem;
+  text-align: center;
+  pointer-events: none;
+}
+.car-progress {
+  position: fixed;
+  bottom: .4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: .7rem;
+  color: rgba(200,169,126,.4);
+  letter-spacing: .1em;
+}
+
+/* ── Empty state ── */
+.empty {
+  text-align: center;
+  padding: 5rem 2rem;
+  color: rgba(200,169,126,.35);
+}
+.empty h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: .5rem; }
+.empty p  { font-size: .85rem; }
+
+@media (max-width: 600px) {
+  header { padding: .9rem 1rem; }
+  .grid  { padding: 1rem; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .toolbar, .upload-zone, .flashes { padding-left: 1rem; padding-right: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <h1>📷 Galería Familiar</h1>
+    <span>Memorias · Siglo XX</span>
+  </div>
+  <div class="header-right">
+    <span class="user-badge">{{ username }}</span>
+    <a href="{{ url_for('logout') }}" class="btn-sm">Salir</a>
+  </div>
+</header>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flashes">
+    {% for cat, msg in messages %}
+      <div class="flash">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <span class="count">{{ images|length }} fotografía{% if images|length != 1 %}s{% endif %}</span>
+  {% if images %}
+  <button class="btn-carousel" onclick="startCarousel(0)">▶ Carrusel</button>
+  {% endif %}
+</div>
+
+<!-- Upload (admin only) -->
+{% if is_admin %}
+<form class="upload-zone" method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+  <label>Añadir foto:</label>
+  <input type="file" name="file" accept=".jpg,.jpeg,.png,.webp">
+  <button type="submit">Subir</button>
+</form>
+{% endif %}
+
+<!-- Grid -->
+{% if images %}
+<div class="grid" id="grid">
+  {% for img in images %}
+  <div class="photo-card" onclick="openLightbox({{ loop.index0 }})" style="animation-delay: {{ loop.index0 * 0.04 }}s">
+    <div class="photo-wrap">
+      <img src="{{ url_for('static', filename='images/' + img) }}"
+           alt="{{ tags.get(img, img) }}"
+           loading="lazy">
+      <span class="year-badge" id="year-{{ loop.index0 }}"></span>
+    </div>
+    <div class="photo-info">
+      <div class="photo-name">{{ img }}</div>
+      <div class="photo-tag" id="tag-{{ loop.index0 }}">{{ tags.get(img, '') }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <h2>Sin fotografías aún</h2>
+  <p>El administrador puede añadir fotos desde el panel superior.</p>
+</div>
+{% endif %}
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <button id="lb-close" onclick="closeLightbox()">✕</button>
+  <div id="lb-img-wrap">
+    <img id="lb-img" src="" alt="">
+  </div>
+  <div class="lb-controls">
+    <button class="lb-btn" onclick="lbNav(-1)">&#8592;</button>
+    <div style="text-align:center">
+      <div id="lb-caption"></div>
+      <div id="lb-counter"></div>
+      {% if is_admin %}
+      <div class="lb-tag-edit" style="justify-content:center; margin-top:.6rem">
+        <input id="lb-tag-input" type="text" placeholder="Descripción / año…" maxlength="120">
+        <button class="btn-save-tag" onclick="saveTag()">Guardar</button>
+      </div>
+      {% endif %}
+    </div>
+    <button class="lb-btn" onclick="lbNav(1)">&#8594;</button>
+  </div>
+  {% if is_admin %}
+  <div style="margin-top:.8rem">
+    <button class="btn-delete" onclick="deletePhoto()">🗑 Eliminar foto</button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Carousel -->
+<div id="carousel-overlay">
+  <button id="car-close" onclick="stopCarousel()">✕</button>
+  <button class="car-nav" id="car-prev" onclick="carNav(-1)">&#8592;</button>
+  <img id="car-img" src="" alt="">
+  <button class="car-nav" id="car-next" onclick="carNav(1)">&#8594;</button>
+  <div id="car-info"></div>
+  <div class="car-progress" id="car-progress"></div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const IMAGES = {{ images | tojson }};
+const IS_ADMIN = {{ 'true' if is_admin else 'false' }};
+let tags = {{ tags | tojson }};
+
+let lbIndex  = 0;
+let carIndex = 0;
+let carTimer = null;
+const CAR_INTERVAL = 4000;
+
+function imgUrl(f) {
+  return "/static/images/" + encodeURIComponent(f);
+}
+
+// Extract year from filename e.g. "1930_abuelos.jpg" → "1930"
+function extractYear(f) {
+  const m = f.match(/^(\d{4})/);
+  return m ? m[1] : '';
+}
+
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+function openLightbox(i) {
+  lbIndex = i;
+  document.getElementById('lightbox').classList.add('open');
+  renderLb();
+  document.addEventListener('keydown', lbKeyHandler);
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.removeEventListener('keydown', lbKeyHandler);
+}
+function renderLb() {
+  const f = IMAGES[lbIndex];
+  document.getElementById('lb-img').src = imgUrl(f);
+  const tag = tags[f] || '';
+  document.getElementById('lb-caption').textContent = tag || f;
+  document.getElementById('lb-counter').textContent = (lbIndex+1) + ' / ' + IMAGES.length;
+  if (IS_ADMIN) {
+    document.getElementById('lb-tag-input').value = tag;
+  }
+}
+function lbNav(dir) {
+  lbIndex = (lbIndex + dir + IMAGES.length) % IMAGES.length;
+  renderLb();
+}
+function lbKeyHandler(e) {
+  if (e.key === 'ArrowLeft')  lbNav(-1);
+  if (e.key === 'ArrowRight') lbNav(1);
+  if (e.key === 'Escape')     closeLightbox();
+}
+
+// ── Tags ──────────────────────────────────────────────────────────────────────
+function saveTag() {
+  if (!IS_ADMIN) return;
+  const f   = IMAGES[lbIndex];
+  const val = document.getElementById('lb-tag-input').value.trim();
+  tags[f]   = val;
+  // Update card
+  const el  = document.getElementById('tag-' + lbIndex);
+  if (el) el.textContent = val;
+  document.getElementById('lb-caption').textContent = val || f;
+  // Persist
+  fetch('/api/tags', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(tags)
+  });
+}
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+function deletePhoto() {
+  if (!IS_ADMIN) return;
+  const f = IMAGES[lbIndex];
+  if (!confirm('¿Eliminar "' + f + '"?\nEsta acción no se puede deshacer.')) return;
+  fetch('/delete/' + encodeURIComponent(f), { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status === 'deleted') { closeLightbox(); location.reload(); }
+      else alert('Error al eliminar');
+    });
+}
+
+// ── Carousel ──────────────────────────────────────────────────────────────────
+function startCarousel(i) {
+  if (!IMAGES.length) return;
+  carIndex = i;
+  document.getElementById('carousel-overlay').classList.add('open');
+  renderCar();
+  carTimer = setInterval(() => { carNav(1); }, CAR_INTERVAL);
+  document.addEventListener('keydown', carKeyHandler);
+}
+function stopCarousel() {
+  clearInterval(carTimer);
+  document.getElementById('carousel-overlay').classList.remove('open');
+  document.removeEventListener('keydown', carKeyHandler);
+}
+function renderCar() {
+  const f = IMAGES[carIndex];
+  const img = document.getElementById('car-img');
+  img.style.animation = 'none';
+  img.offsetHeight; // reflow
+  img.style.animation = '';
+  img.src = imgUrl(f);
+  document.getElementById('car-info').textContent     = tags[f] || f;
+  document.getElementById('car-progress').textContent = (carIndex+1) + ' / ' + IMAGES.length;
+}
+function carNav(dir) {
+  carIndex = (carIndex + dir + IMAGES.length) % IMAGES.length;
+  renderCar();
+  clearInterval(carTimer);
+  carTimer = setInterval(() => { carNav(1); }, CAR_INTERVAL);
+}
+function carKeyHandler(e) {
+  if (e.key === 'ArrowLeft')  carNav(-1);
+  if (e.key === 'ArrowRight') carNav(1);
+  if (e.key === 'Escape')     stopCarousel();
+}
+
+// ── Year badges ───────────────────────────────────────────────────────────────
+IMAGES.forEach((f, i) => {
+  const y = extractYear(f);
+  const el = document.getElementById('year-' + i);
+  if (el && y) el.textContent = y;
+});
+
+// ── Click outside lightbox ────────────────────────────────────────────────────
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+</script>
+</body>
+</html>
